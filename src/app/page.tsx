@@ -7,14 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { Copy } from 'lucide-react';
 import { useState } from 'react';
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -32,56 +28,11 @@ export default function Home() {
   const [mood, setMood] = useState('');
   const [structure, setStructure] = useState('');
   const [culturalReferences, setCulturalReferences] = useState<string[]>([]);
-  const [similarSongs, setSimilarSongs] = useState<string[]>([]); // State for similar songs
+  const [similarSongs, setSimilarSongs] = useState<string[]>([]);
   const [loadingTranscription, setLoadingTranscription] = useState(false);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
-  const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
-
-  const { data: songPerformanceData, isLoading: isLoadingPerformance } =
-    useQuery({
-      queryKey: ['artistPerformance', selectedArtistId],
-      queryFn: async () => {
-        if (!selectedArtistId) return [];
-        const response = await fetch(`/api/artists?id=${selectedArtistId}`);
-        if (!response.ok) throw new Error('Failed to fetch performance data');
-        const data = await response.json();
-        return data.topTracks.map((track: any) => ({
-          date: track.name,
-          views: track.popularity * 1000,
-          likes: track.popularity * 500,
-          streams: track.popularity * 2000,
-        }));
-      },
-      enabled: !!selectedArtistId,
-    });
-
-  const { data: artistComparisonData, isLoading: isLoadingComparison } =
-    useQuery({
-      queryKey: ['artistComparison', selectedArtistId],
-      queryFn: async () => {
-        if (!selectedArtistId) return [];
-        const response = await fetch(`/api/artists?id=${selectedArtistId}`);
-        if (!response.ok) throw new Error('Failed to fetch comparison data');
-        const data = await response.json();
-        return [
-          {
-            artist: data.artist.name,
-            streams: data.artist.followers.total,
-            monthlyListeners: data.artist.popularity * 10000,
-          },
-        ];
-      },
-      enabled: !!selectedArtistId,
-    });
 
   const { toast } = useToast();
-
-  const handleCopyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: `${label} copied to clipboard!`,
-    });
-  };
 
   const handleTranscribeAndAnalyze = async () => {
     setLoadingTranscription(true);
@@ -93,7 +44,7 @@ export default function Home() {
     setMood('');
     setStructure('');
     setCulturalReferences([]);
-    setSimilarSongs([]); // Clear similar songs
+    setSimilarSongs([]);
     toast({
       title: 'Transcribing and analyzing...',
       description: 'This may take a few minutes.',
@@ -112,7 +63,7 @@ export default function Home() {
       setMood(analysisResult.mood);
       setStructure(analysisResult.structure);
       setCulturalReferences(analysisResult.culturalReferences);
-      setSimilarSongs(analysisResult.similarSongs || []); // Set similar songs
+      setSimilarSongs(analysisResult.similarSongs || []);
 
       toast({
         title: 'Analysis complete!',
@@ -265,14 +216,35 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">
                     Views, Likes, and Streams Over Time
                   </p>
-                  {isLoadingPerformance ? (
-                    <div className="h-80 flex items-center justify-center">
-                      <p>Loading performance data...</p>
-                    </div>
-                  ) : songPerformanceData?.length ? (
-                    <ResponsiveContainer width="100%" height={300}>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={songPerformanceData}
+                        data={[
+                          {
+                            date: 'Week 1',
+                            views: 1000,
+                            likes: 500,
+                            streams: 2000,
+                          },
+                          {
+                            date: 'Week 2',
+                            views: 2000,
+                            likes: 1000,
+                            streams: 4000,
+                          },
+                          {
+                            date: 'Week 3',
+                            views: 3000,
+                            likes: 1500,
+                            streams: 6000,
+                          },
+                          {
+                            date: 'Week 4',
+                            views: 4000,
+                            likes: 2000,
+                            streams: 8000,
+                          },
+                        ]}
                         margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
@@ -303,11 +275,7 @@ export default function Home() {
                         />
                       </AreaChart>
                     </ResponsiveContainer>
-                  ) : (
-                    <div className="h-80 flex items-center justify-center">
-                      <p>No performance data available</p>
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </CardHeader>
             </Card>
@@ -321,35 +289,50 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">
                     Compare artists based on streams and monthly listeners.
                   </p>
-                  {isLoadingComparison ? (
-                    <div className="h-80 flex items-center justify-center">
-                      <p>Loading comparison data...</p>
-                    </div>
-                  ) : artistComparisonData?.length ? (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart data={artistComparisonData}>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={[
+                          {
+                            artist: 'Artist 1',
+                            streams: 1000000,
+                            monthlyListeners: 500000,
+                          },
+                          {
+                            artist: 'Artist 2',
+                            streams: 800000,
+                            monthlyListeners: 400000,
+                          },
+                          {
+                            artist: 'Artist 3',
+                            streams: 600000,
+                            monthlyListeners: 300000,
+                          },
+                        ]}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="artist" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar
+                        <Area
+                          type="monotone"
                           dataKey="streams"
+                          stroke="#8884d8"
                           fill="#8884d8"
                           name="Total Streams"
                         />
-                        <Bar
+                        <Area
+                          type="monotone"
                           dataKey="monthlyListeners"
+                          stroke="#82ca9d"
                           fill="#82ca9d"
                           name="Monthly Listeners"
                         />
-                      </BarChart>
+                      </AreaChart>
                     </ResponsiveContainer>
-                  ) : (
-                    <div className="h-80 flex items-center justify-center">
-                      <p>No comparison data available</p>
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </CardHeader>
             </Card>
@@ -359,33 +342,3 @@ export default function Home() {
     </div>
   );
 }
-
-interface InsightCardProps {
-  title: string;
-  content: string;
-  onCopy: () => void;
-}
-
-const InsightCard: React.FC<InsightCardProps> = ({
-  title,
-  content,
-  onCopy,
-}) => {
-  return (
-    <Card className="shadow-md rounded-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          {title}
-          <Button variant="ghost" size="icon" onClick={onCopy}>
-            <Copy className="h-4 w-4" />
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-          {content}
-        </p>
-      </CardContent>
-    </Card>
-  );
-};
